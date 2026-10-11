@@ -155,6 +155,46 @@ const rejectVoucher = async (req, res, next) => {
   }
 };
 
+/**
+ * List vouchers with search, filters, sorting, and pagination
+ * GET /api/vouchers
+ */
+const listVouchers = async (req, res, next) => {
+  try {
+    const user = req.user;
+    const query = req.query;
+
+    const result = await voucherService.listVouchers(user, query);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Vouchers retrieved successfully',
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Return filter dropdown metadata (distinct departments, categories, statuses)
+ * GET /api/vouchers/meta
+ */
+const getVoucherMetadata = async (req, res, next) => {
+  try {
+    const user = req.user;
+
+    const metadata = await voucherService.getVoucherMetadata(user);
+
+    return res.status(200).json({
+      success: true,
+      data: metadata,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createVoucher,
   getVoucherById,
@@ -163,4 +203,6 @@ module.exports = {
   submitDraftVoucher,
   approveVoucher,
   rejectVoucher,
+  listVouchers,
+  getVoucherMetadata,
 };

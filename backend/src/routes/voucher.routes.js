@@ -8,11 +8,27 @@ const {
   createVoucherSchema,
   updateVoucherSchema,
   rejectVoucherSchema,
+  listVouchersQuerySchema,
 } = require('../validators/voucher.validator');
 
 const router = express.Router();
 
-// 1. Create a Voucher (EMPLOYEE only)
+// 1. List Vouchers with Search, Filters, Sorting, and Pagination (Any authenticated role, role-scoped)
+router.get(
+  '/',
+  authenticate,
+  validate(listVouchersQuerySchema, 'query'),
+  voucherController.listVouchers
+);
+
+// 2. Get Filter Dropdown Metadata (Any authenticated role, role-scoped)
+router.get(
+  '/meta',
+  authenticate,
+  voucherController.getVoucherMetadata
+);
+
+// 3. Create a Voucher (EMPLOYEE only)
 router.post(
   '/',
   authenticate,
@@ -21,7 +37,7 @@ router.post(
   voucherController.createVoucher
 );
 
-// 2. Get a Voucher by ID (EMPLOYEE own, DIRECTOR all, ACCOUNTS all)
+// 4. Get a Voucher by ID (EMPLOYEE own, DIRECTOR all, ACCOUNTS all)
 router.get(
   '/:id',
   authenticate,

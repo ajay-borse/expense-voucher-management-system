@@ -436,6 +436,183 @@ const rejectVoucher = async (voucherId, directorUser, rejectionReason) => {
   });
 };
 
+/**
+ * List vouchers with role-based scoping, search, filtering, sorting, and pagination.
+ */
+const listVouchers = async (user, query) => {
+  const where = {};
+
+  // 1. Mandatory role-based scoping FIRST
+  if (user.role === 'EMPLOYEE') {
+    where.createdById = user.id;
+  }
+
+  // 2. Case-insensitive search across voucherNumber and createdBy.name
+  if (query.search) {
+    where.AND = where.AND || [];
+    where.AND.push({
+      OR: [
+        { voucherNumber: { contains: query.search, mode: 'insensitive' } },
+        { createdBy: { name: { contains: query.search, mode: 'insensitive' } } },
+      ],
+    });
+  }
+
+  // 3. Exact department match
+  if (query.department) {
+    where.departmentName = query.department;
+  }
+
+  // 4. Exact category match
+  if (query.category) {
+    where.expenseCategory = query.category;
+  }
+
+  // 5. Valid status match
+  if (query.status) {
+    where.status = query.status;
+  }
+
+  // 6. Date range filtering on expenseDate (inclusive bounds)
+  if (query.fromDate || query.toDate) {
+    where.expenseDate = {};
+    if (query.fromDate) {
+      where.expenseDate.gte = /^\d{4}-\d{2}-\d{2}$/.test(query.fromDate)
+        ? new Date(`${query.fromDate}T00:00:00.000Z`)
+        : new Date(query.fromDate);
+    }
+    if (query.toDate) {
+      where.expenseDate.lte = /^\d{4}-\d{2}-\d{2}$/.test(query.toDate)
+        ? new Date(`${query.toDate}T23:59:59.999Z`)
+        : new Date(query.toDate);
+    }
+  }
+
+  // 7. Amount range filtering
+  if (query.minAmount !== undefined || query.maxAmount !== undefined) {
+    where.amount = {};
+    if (query.minAmount !== undefined) {
+      where.amount.gte = query.minAmount;
+    }
+    if (query.maxAmount !== undefined) {
+      where.amount.lte = query.maxAmount;
+    }
+  }
+
+  // 8. Sorting
+  const ALLOWED_SORT_FIELDS = new Set(['createdAt', 'expenseDate', 'amount', 'voucherNumber']);
+  const sortBy = ALLOWED_SORT_FIELDS.has(query.sortBy) ? query.sortBy : 'createdAt';
+  const order = query.order === 'asc' ? 'asc' : 'desc';
+
+  const orderBy = [
+    { [sortBy]: order },
+    { id: 'asc' }, // deterministic secondary sort
+  ];
+
+  // 9. Pagination
+  const page = query.page || 1;
+  const limit = query.limit || 10;
+  const skip = (page - 1) * limit;
+  const take = limit;
+
+  // Execute count and paginated query in an identical query scope transaction
+  const [total, vouchers] = await prisma.$transaction([
+    prisma.voucher.count({ where }),
+    prisma.voucher.findMany({
+      where,
+      orderBy,
+      skip,
+      take,
+      select: {
+        id: true,
+        voucherNumber: true,
+        status: true,
+        departmentName: true,
+        expenseCategory: true,
+        expenseTitle: true,
+        expenseDescription: true,
+        amount: true,
+        expenseDate: true,
+        createdAt: true,
+        updatedAt: true,
+        submittedAt: true,
+        approvalDate: true,
+        rejectionReason: true,
+        employeeSignatureUrl: true,
+        directorSignatureUrl: true,
+        approvedById: true,
+        createdBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            department: true,
+          },
+        },
+        approvedBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            department: true,
+          },
+        },
+      },
+    }),
+  ]);
+
+  const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
+
+  return {
+    items: vouchers,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages,
+    },
+  };
+};
+
+/**
+ * Return filter dropdown metadata (departments, categories, statuses)
+ * scoped by user role.
+ */
+const getVoucherMetadata = async (user) => {
+  const where = user.role === 'EMPLOYEE' ? { createdById: user.id } : {};
+
+  const [deptRecords, catRecords] = await Promise.all([
+    prisma.voucher.findMany({
+      where,
+      select: { departmentName: true },
+      distinct: ['departmentName'],
+    }),
+    prisma.voucher.findMany({
+      where,
+      select: { expenseCategory: true },
+      distinct: ['expenseCategory'],
+    }),
+  ]);
+
+  const departments = deptRecords
+    .map((d) => d.departmentName?.trim())
+    .filter((d) => Boolean(d))
+    .sort((a, b) => a.localeCompare(b));
+
+  const categories = catRecords
+    .map((c) => c.expenseCategory?.trim())
+    .filter((c) => Boolean(c))
+    .sort((a, b) => a.localeCompare(b));
+
+  const statuses = ['DRAFT', 'PENDING_APPROVAL', 'APPROVED', 'REJECTED'];
+
+  return {
+    departments: Array.from(new Set(departments)),
+    categories: Array.from(new Set(categories)),
+    statuses,
+  };
+};
+
 module.exports = {
   createVoucher,
   getVoucherById,
@@ -444,4 +621,6 @@ module.exports = {
   submitDraftVoucher,
   approveVoucher,
   rejectVoucher,
+  listVouchers,
+  getVoucherMetadata,
 };

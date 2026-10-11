@@ -5,6 +5,7 @@ node_modules/
 .env
 .env.*
 !.env.example
+!.env.test.example
 
 # Build output
 dist/
@@ -15,7 +16,9 @@ coverage/
 backend/uploads/*
 !backend/uploads/.gitkeep
 !backend/uploads/signatures/
-!backend/uploads/signatures/*
+backend/uploads/signatures/*
+!backend/uploads/signatures/.gitkeep
+!backend/uploads/signatures/*-demo.png
 
 # Logs
 *.log

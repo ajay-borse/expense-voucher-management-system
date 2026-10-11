@@ -58,8 +58,20 @@ const voucherIdParamSchema = z.object({
   id: z.string().uuid('Invalid voucher ID format'),
 });
 
+// Schema for rejecting a voucher - requires non-empty rejectionReason (min 5 trimmed characters)
+const rejectVoucherSchema = z
+  .object({
+    rejectionReason: z
+      .string({ required_error: 'Rejection reason is required' })
+      .trim()
+      .min(5, 'Rejection reason must be at least 5 characters')
+      .max(1000, 'Rejection reason cannot exceed 1000 characters'),
+  })
+  .strict();
+
 module.exports = {
   createVoucherSchema,
   updateVoucherSchema,
   voucherIdParamSchema,
+  rejectVoucherSchema,
 };

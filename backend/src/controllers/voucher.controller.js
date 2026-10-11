@@ -96,10 +96,71 @@ const submitDraftVoucher = async (req, res, next) => {
   }
 };
 
+/**
+ * Approve a PENDING_APPROVAL voucher (DIRECTOR only)
+ * POST /api/vouchers/:id/approve
+ */
+const approveVoucher = async (req, res, next) => {
+  try {
+    const voucherId = req.params.id;
+    const directorUser = req.user;
+    const signatureFile = req.file;
+
+    if (!signatureFile) {
+      return res.status(400).json({
+        success: false,
+        message: 'Signature file is required for voucher approval',
+      });
+    }
+
+    const approved = await voucherService.approveVoucher(
+      voucherId,
+      directorUser,
+      signatureFile
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: 'Voucher approved successfully',
+      data: approved,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Reject a PENDING_APPROVAL voucher (DIRECTOR only)
+ * POST /api/vouchers/:id/reject
+ */
+const rejectVoucher = async (req, res, next) => {
+  try {
+    const voucherId = req.params.id;
+    const directorUser = req.user;
+    const { rejectionReason } = req.body;
+
+    const rejected = await voucherService.rejectVoucher(
+      voucherId,
+      directorUser,
+      rejectionReason
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: 'Voucher rejected successfully',
+      data: rejected,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createVoucher,
   getVoucherById,
   updateDraftVoucher,
   deleteDraftVoucher,
   submitDraftVoucher,
+  approveVoucher,
+  rejectVoucher,
 };

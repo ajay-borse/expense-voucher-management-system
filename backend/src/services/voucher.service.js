@@ -1,5 +1,6 @@
 const prisma = require('../config/prisma');
 const { generateVoucherNumber } = require('../utils/voucherNumber');
+const { safeRemoveFile } = require('../utils/signatureFiles');
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -277,10 +278,170 @@ const submitDraftVoucher = async (voucherId, user) => {
   });
 };
 
+/**
+ * Approves a PENDING_APPROVAL voucher (DIRECTOR only).
+ * Attaches the Director's uploaded signature and transitions status to APPROVED atomically.
+ */
+const approveVoucher = async (voucherId, directorUser, signatureFile) => {
+  const directorSignatureUrl = `/api/users/signature/file/${signatureFile.filename}`;
+
+  try {
+    ensureValidId(voucherId);
+
+    return await prisma.$transaction(async (tx) => {
+      const existing = await tx.voucher.findUnique({
+        where: { id: voucherId },
+      });
+
+      if (!existing) {
+        const error = new Error('Voucher not found');
+        error.statusCode = 404;
+        throw error;
+      }
+
+      if (existing.status !== 'PENDING_APPROVAL') {
+        const error = new Error('Only vouchers pending approval can be approved');
+        error.statusCode = 409;
+        throw error;
+      }
+
+      // Atomic status transition at database operation boundary
+      const updateResult = await tx.voucher.updateMany({
+        where: {
+          id: voucherId,
+          status: 'PENDING_APPROVAL',
+        },
+        data: {
+          status: 'APPROVED',
+          approvedById: directorUser.id,
+          approvalDate: new Date(),
+          directorSignatureUrl,
+        },
+      });
+
+      if (updateResult.count === 0) {
+        const error = new Error('Only vouchers pending approval can be approved');
+        error.statusCode = 409;
+        throw error;
+      }
+
+      // Record APPROVED activity
+      await tx.voucherActivity.create({
+        data: {
+          voucherId,
+          userId: directorUser.id,
+          action: 'APPROVED',
+          remark: `Voucher approved and digitally signed by Director ${directorUser.name}`,
+        },
+      });
+
+      // Return updated voucher with creator, approver, and activities
+      return await tx.voucher.findUnique({
+        where: { id: voucherId },
+        include: {
+          createdBy: {
+            select: { id: true, name: true, email: true, role: true, department: true },
+          },
+          approvedBy: {
+            select: { id: true, name: true, email: true, role: true, department: true },
+          },
+          activities: {
+            orderBy: { createdAt: 'asc' },
+            include: {
+              user: { select: { id: true, name: true, email: true, role: true } },
+            },
+          },
+        },
+      });
+    });
+  } catch (error) {
+    // If voucher approval fails for any reason, clean up newly uploaded signature file
+    if (signatureFile && signatureFile.path) {
+      safeRemoveFile(signatureFile.path);
+    }
+    throw error;
+  }
+};
+
+/**
+ * Rejects a PENDING_APPROVAL voucher (DIRECTOR only).
+ * Sets rejectionReason, approvalDate, and transitions status to REJECTED atomically.
+ */
+const rejectVoucher = async (voucherId, directorUser, rejectionReason) => {
+  ensureValidId(voucherId);
+
+  return await prisma.$transaction(async (tx) => {
+    const existing = await tx.voucher.findUnique({
+      where: { id: voucherId },
+    });
+
+    if (!existing) {
+      const error = new Error('Voucher not found');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    if (existing.status !== 'PENDING_APPROVAL') {
+      const error = new Error('Only vouchers pending approval can be rejected');
+      error.statusCode = 409;
+      throw error;
+    }
+
+    // Atomic updateMany status guard
+    const updateResult = await tx.voucher.updateMany({
+      where: {
+        id: voucherId,
+        status: 'PENDING_APPROVAL',
+      },
+      data: {
+        status: 'REJECTED',
+        approvalDate: new Date(),
+        rejectionReason,
+      },
+    });
+
+    if (updateResult.count === 0) {
+      const error = new Error('Only vouchers pending approval can be rejected');
+      error.statusCode = 409;
+      throw error;
+    }
+
+    // Record REJECTED activity
+    await tx.voucherActivity.create({
+      data: {
+        voucherId,
+        userId: directorUser.id,
+        action: 'REJECTED',
+        remark: `Rejection reason: ${rejectionReason}`,
+      },
+    });
+
+    return await tx.voucher.findUnique({
+      where: { id: voucherId },
+      include: {
+        createdBy: {
+          select: { id: true, name: true, email: true, role: true, department: true },
+        },
+        approvedBy: {
+          select: { id: true, name: true, email: true, role: true, department: true },
+        },
+        activities: {
+          orderBy: { createdAt: 'asc' },
+          include: {
+            user: { select: { id: true, name: true, email: true, role: true } },
+          },
+        },
+      },
+    });
+  });
+};
+
 module.exports = {
   createVoucher,
   getVoucherById,
   updateDraftVoucher,
   deleteDraftVoucher,
   submitDraftVoucher,
+  approveVoucher,
+  rejectVoucher,
 };

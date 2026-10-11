@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { UploadCloud, X, FileImage, AlertCircle, CheckCircle2 } from 'lucide-react';
 import Button from './Button';
+import SecureImage from './SecureImage';
 
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2 MB
 const ALLOWED_MIME_TYPES = ['image/png', 'image/jpeg', 'image/jpg'];
@@ -149,10 +150,10 @@ export default function SignatureUpload({
           <div className="flex items-center gap-4">
             {/* Signature Image Preview Container */}
             <div className="w-32 h-18 rounded-lg border border-slate-200 bg-slate-50 flex items-center justify-center p-2 overflow-hidden shrink-0">
-              <img
+              <SecureImage
                 src={activeDisplayUrl}
                 alt="Digital Signature Preview"
-                className="max-h-full max-w-full object-contain select-none"
+                className="max-h-full max-w-full"
               />
             </div>
 

@@ -16,7 +16,9 @@ import { ToastProvider } from './context/ToastContext';
 // Employee Views
 import EmployeeDashboard from './pages/employee/EmployeeDashboard';
 import CreateVoucher from './pages/employee/CreateVoucher';
+import EditVoucher from './pages/employee/EditVoucher';
 import MyVouchers from './pages/employee/MyVouchers';
+import VoucherDetails from './pages/employee/VoucherDetails';
 
 // Director Views
 import DirectorDashboard from './pages/director/DirectorDashboard';
@@ -127,6 +129,8 @@ function App() {
                 <Route index element={<Navigate to="/employee/dashboard" replace />} />
                 <Route path="dashboard" element={<EmployeeDashboard />} />
                 <Route path="vouchers/create" element={<CreateVoucher />} />
+                <Route path="vouchers/:id/edit" element={<EditVoucher />} />
+                <Route path="vouchers/:id" element={<VoucherDetails />} />
                 <Route path="vouchers" element={<MyVouchers />} />
               </Route>
 

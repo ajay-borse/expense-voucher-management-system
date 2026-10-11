@@ -1,0 +1,109 @@
+// Prisma Schema for Expense Voucher Management System
+// Database: PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// User Roles in the system
+enum UserRole {
+  EMPLOYEE
+  DIRECTOR
+  ACCOUNTS
+}
+
+// Voucher Lifecycle Statuses
+// Flow: DRAFT -> PENDING_APPROVAL -> APPROVED or REJECTED
+enum VoucherStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+}
+
+// Audit Trail Action Types
+enum VoucherAction {
+  CREATED
+  UPDATED
+  SUBMITTED
+  APPROVED
+  REJECTED
+}
+
+// User Model representing employees, directors, and accounts staff
+model User {
+  id           String    @id @default(uuid())
+  name         String
+  email        String    @unique
+  passwordHash String
+  role         UserRole
+  employeeId   String?
+  department   String?
+  signatureUrl String?
+  createdAt    DateTime  @default(now())
+
+  // Relations
+  createdVouchers  Voucher[]         @relation("VoucherCreator")
+  approvedVouchers Voucher[]         @relation("VoucherApprover")
+  activities       VoucherActivity[] @relation("UserActivities")
+
+  @@map("users")
+}
+
+// Voucher Model representing expense voucher records
+model Voucher {
+  id                   String        @id @default(uuid())
+  voucherNumber        String        @unique
+  voucherDate          DateTime
+  expenseDate          DateTime
+  departmentName       String
+  expenseTitle         String
+  expenseCategory      String
+  expenseDescription  String?
+  amount               Decimal       @db.Decimal(12, 2)
+  status               VoucherStatus @default(DRAFT)
+  createdById          String
+  employeeSignatureUrl String
+  directorSignatureUrl String?
+  approvedById         String?
+  submittedAt          DateTime?
+  approvalDate         DateTime?
+  rejectionReason      String?
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  // Relations
+  createdBy  User              @relation("VoucherCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  approvedBy User?             @relation("VoucherApprover", fields: [approvedById], references: [id], onDelete: Restrict)
+  activities VoucherActivity[]
+
+  // Indexes (voucherNumber is unique, providing its own B-tree index)
+  @@index([status])
+  @@index([createdById])
+  @@index([expenseDate])
+  @@index([expenseCategory])
+  @@index([departmentName])
+  @@map("vouchers")
+}
+
+// VoucherActivity Model for audit logging and activity history
+model VoucherActivity {
+  id        String        @id @default(uuid())
+  voucherId String
+  userId    String
+  action    VoucherAction
+  remark    String?
+  createdAt DateTime      @default(now())
+
+  // Relations
+  voucher Voucher @relation(fields: [voucherId], references: [id], onDelete: Cascade)
+  user    User    @relation("UserActivities", fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([voucherId])
+  @@index([userId])
+  @@map("voucher_activities")
+}

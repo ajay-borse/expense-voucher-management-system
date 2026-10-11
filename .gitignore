@@ -11,9 +11,11 @@ dist/
 build/
 coverage/
 
-# Uploaded files (keep the folder, ignore the contents)
+# Uploaded files (keep the folder and demo signatures, ignore user uploads)
 backend/uploads/*
 !backend/uploads/.gitkeep
+!backend/uploads/signatures/
+!backend/uploads/signatures/*
 
 # Logs
 *.log

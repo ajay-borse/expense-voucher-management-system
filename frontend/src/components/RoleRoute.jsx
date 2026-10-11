@@ -3,6 +3,8 @@ import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import LoadingSpinner from './common/LoadingSpinner';
 
+import Forbidden from '../pages/Forbidden';
+
 export default function RoleRoute({ allowedRoles = [], children }) {
   const { user, loading } = useAuth();
 
@@ -23,17 +25,7 @@ export default function RoleRoute({ allowedRoles = [], children }) {
 
   // Check whether user's role is permitted on this route
   if (!allowedRoles.includes(user.role)) {
-    // Redirect unauthorized user to their role's appropriate home dashboard
-    switch (user.role) {
-      case 'EMPLOYEE':
-        return <Navigate to="/employee/dashboard" replace />;
-      case 'DIRECTOR':
-        return <Navigate to="/director/dashboard" replace />;
-      case 'ACCOUNTS':
-        return <Navigate to="/accounts/dashboard" replace />;
-      default:
-        return <Navigate to="/login" replace />;
-    }
+    return <Forbidden />;
   }
 
   return children ? children : <Outlet />;

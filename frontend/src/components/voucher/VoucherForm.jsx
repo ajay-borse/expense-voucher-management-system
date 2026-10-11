@@ -138,6 +138,7 @@ export default function VoucherForm({
    * Save voucher as DRAFT (Create or Update).
    */
   const onSaveDraft = async (formData) => {
+    if (isSavingDraft || isSubmittingApproval) return;
     setIsSavingDraft(true);
     try {
       const payload = {
@@ -171,6 +172,7 @@ export default function VoucherForm({
    * Checks if user has a registered signature.
    */
   const onTriggerSubmitForApproval = (formData) => {
+    if (isSavingDraft || isSubmittingApproval) return;
     // If employee does not have a signature on file, block submission
     if (!userSignatureUrl) {
       setShowSignatureBlockerModal(true);
@@ -186,6 +188,7 @@ export default function VoucherForm({
    * 2. Calls POST /api/vouchers/:id/submit
    */
   const handleConfirmedSubmit = async () => {
+    if (isSubmittingApproval) return;
     setIsSubmittingApproval(true);
     setShowConfirmSubmit(false);
 
@@ -228,8 +231,10 @@ export default function VoucherForm({
    * Upload signature directly from blocker modal
    */
   const handleUploadSignature = async () => {
-    if (!tempSignatureFile) {
-      toast.warning('Please select a signature image file first');
+    if (!tempSignatureFile || isUploadingSignature) {
+      if (!tempSignatureFile) {
+        toast.warning('Please select a signature image file first');
+      }
       return;
     }
 
@@ -255,7 +260,7 @@ export default function VoucherForm({
   };
 
   return (
-    <form className="space-y-6" noValidate>
+    <form className="space-y-6" onSubmit={(e) => e.preventDefault()} noValidate>
       {/* 2-Column Responsive Layout */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* ============================================================ */}

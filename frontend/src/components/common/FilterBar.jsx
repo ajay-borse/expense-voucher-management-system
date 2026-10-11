@@ -267,6 +267,7 @@ export default function FilterBar({
               size="md"
               onClick={handleReset}
               title="Reset all filters"
+              aria-label="Reset all filters"
               className="text-slate-500 hover:text-slate-800"
             >
               <RotateCcw className="w-4 h-4" />
@@ -278,7 +279,7 @@ export default function FilterBar({
 
       {/* Range Error Notice */}
       {rangeError && (
-        <div className="flex items-center gap-2 p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-xs text-rose-700 font-medium animate-fade-in">
+        <div className="flex items-center gap-2 p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-xs text-rose-700 font-medium animate-fade-in" role="alert">
           <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
           <span>{rangeError}</span>
         </div>
@@ -289,10 +290,11 @@ export default function FilterBar({
         <div className="pt-4 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-in">
           {/* Department Filter */}
           <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-1">
+            <label htmlFor="filter-department" className="block text-xs font-semibold text-slate-600 mb-1">
               Department
             </label>
             <select
+              id="filter-department"
               value={currentDepartment}
               onChange={(e) => handleFilterChange('department', e.target.value)}
               className="block w-full py-1.5 px-3 text-xs rounded-lg border border-slate-300 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500"
@@ -308,10 +310,11 @@ export default function FilterBar({
 
           {/* Category Filter */}
           <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-1">
+            <label htmlFor="filter-category" className="block text-xs font-semibold text-slate-600 mb-1">
               Expense Category
             </label>
             <select
+              id="filter-category"
               value={currentCategory}
               onChange={(e) => handleFilterChange('category', e.target.value)}
               className="block w-full py-1.5 px-3 text-xs rounded-lg border border-slate-300 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500"

@@ -9,14 +9,21 @@ export default function ConfirmModal({
   message,
   children,
   confirmLabel = 'Confirm',
+  confirmText,
   cancelLabel = 'Cancel',
+  cancelText,
   isDestructive = false,
   destructive,
+  variant,
   isLoading = false,
   onConfirm,
   onCancel,
+  onClose,
 }) {
-  const isDanger = isDestructive || destructive;
+  const isDanger = isDestructive || destructive || variant === 'danger';
+  const resolvedConfirmLabel = confirmText || confirmLabel;
+  const resolvedCancelLabel = cancelText || cancelLabel;
+  const handleCancel = onCancel || onClose;
 
   const footer = (
     <>
@@ -24,10 +31,10 @@ export default function ConfirmModal({
         type="button"
         variant="outline"
         size="md"
-        onClick={onCancel}
+        onClick={handleCancel}
         disabled={isLoading}
       >
-        {cancelLabel}
+        {resolvedCancelLabel}
       </Button>
 
       <Button
@@ -38,7 +45,7 @@ export default function ConfirmModal({
         isLoading={isLoading}
         disabled={isLoading}
       >
-        {confirmLabel}
+        {resolvedConfirmLabel}
       </Button>
     </>
   );
@@ -46,7 +53,7 @@ export default function ConfirmModal({
   return (
     <Modal
       isOpen={isOpen}
-      onClose={isLoading ? undefined : onCancel}
+      onClose={isLoading ? undefined : handleCancel}
       title={title}
       size="sm"
       footer={footer}

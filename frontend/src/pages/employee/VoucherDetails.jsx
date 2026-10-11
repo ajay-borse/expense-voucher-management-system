@@ -82,6 +82,7 @@ export default function VoucherDetails() {
 
   // Handle Delete Draft
   const handleDeleteDraft = async () => {
+    if (isDeleting) return;
     setIsDeleting(true);
     try {
       await api.delete(`/vouchers/${id}`);
@@ -97,6 +98,7 @@ export default function VoucherDetails() {
 
   // Check and initiate submit
   const handleInitiateSubmit = () => {
+    if (isSubmitting) return;
     // Check if employee has a registered signature on file
     const hasSignature = !!user?.signatureUrl || !!voucher?.employeeSignatureUrl;
     if (!hasSignature) {
@@ -108,6 +110,7 @@ export default function VoucherDetails() {
 
   // Execute Submit for Approval
   const handleConfirmSubmit = async () => {
+    if (isSubmitting) return;
     setIsSubmitting(true);
     try {
       const response = await api.post(`/vouchers/${id}/submit`);
@@ -125,8 +128,10 @@ export default function VoucherDetails() {
 
   // Upload user signature modal submission
   const handleSaveUploadedSignature = async () => {
-    if (!tempSignatureFile) {
-      toast.error('Please choose a valid signature file first');
+    if (!tempSignatureFile || isUploadingSignature) {
+      if (!tempSignatureFile) {
+        toast.error('Please choose a valid signature file first');
+      }
       return;
     }
     setIsUploadingSignature(true);

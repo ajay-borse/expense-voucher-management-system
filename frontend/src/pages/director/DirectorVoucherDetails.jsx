@@ -80,6 +80,7 @@ export default function DirectorVoucherDetails() {
 
   // Handle Approve Submission
   const handleConfirmApproval = async () => {
+    if (isApproving) return;
     if (!directorSignatureFile) {
       setApproveError('Please select a valid digital signature file.');
       return;
@@ -125,6 +126,7 @@ export default function DirectorVoucherDetails() {
   const isReasonValid = trimmedReason.length >= 5;
 
   const handleConfirmRejection = async () => {
+    if (isRejecting) return;
     setReasonTouched(true);
     if (!isReasonValid) {
       return;

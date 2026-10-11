@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -26,6 +26,31 @@ export default function AppLayout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Close mobile drawer on Escape key and prevent background scroll
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isMobileMenuOpen]);
+
+  // Automatically close mobile menu on route changes
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
 
   // Navigation configuration scoped by user role
   const getNavItems = () => {
@@ -211,7 +236,13 @@ export default function AppLayout() {
         {/* MOBILE SIDEBAR DRAWER */}
         {/* ============================================================ */}
         {isMobileMenuOpen && (
-          <div className="fixed inset-0 z-50 md:hidden flex" role="dialog" aria-modal="true">
+          <div
+            id="mobile-drawer"
+            className="fixed inset-0 z-50 md:hidden flex"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Navigation drawer"
+          >
             {/* Backdrop */}
             <div
               className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity"
@@ -301,8 +332,10 @@ export default function AppLayout() {
               <button
                 type="button"
                 onClick={() => setIsMobileMenuOpen(true)}
-                className="md:hidden p-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 focus:outline-none"
+                className="md:hidden p-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 aria-label="Open navigation menu"
+                aria-expanded={isMobileMenuOpen}
+                aria-controls="mobile-drawer"
               >
                 <Menu className="w-5 h-5" />
               </button>

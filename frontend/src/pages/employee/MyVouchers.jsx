@@ -99,7 +99,7 @@ export default function MyVouchers() {
 
   // Confirm delete handler
   const handleConfirmDelete = async () => {
-    if (!voucherToDelete) return;
+    if (!voucherToDelete || isDeleting) return;
     setIsDeleting(true);
 
     try {

@@ -39,6 +39,8 @@ api.interceptors.request.use(
  * - Avoids redirect loops when the 401 originates from /auth/login
  * - Preserves session on 400, 403, 404, 409 or network timeouts
  */
+let isRedirectingToLogin = false;
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -57,8 +59,9 @@ api.interceptors.response.use(
           console.warn('Failed to clear localStorage on 401:', e);
         }
 
-        // Only redirect if not already on the login page to prevent loops
-        if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+        // Only redirect once if not already on the login page to prevent loops
+        if (typeof window !== 'undefined' && window.location.pathname !== '/login' && !isRedirectingToLogin) {
+          isRedirectingToLogin = true;
           window.location.href = '/login?expired=true';
         }
       }

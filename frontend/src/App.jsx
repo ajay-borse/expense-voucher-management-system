@@ -11,6 +11,7 @@ import LoadingSpinner from './components/common/LoadingSpinner';
 // Pages
 import Login from './pages/Login';
 import NotFound from './pages/NotFound';
+import Forbidden from './pages/Forbidden';
 import { ToastProvider } from './context/ToastContext';
 
 // Employee Views
@@ -163,6 +164,9 @@ function App() {
                 <Route path="vouchers" element={<AccountsVouchers />} />
               </Route>
             </Route>
+
+            {/* Forbidden Route */}
+            <Route path="/403" element={<Forbidden />} />
 
             {/* Catch-all 404 Route */}
             <Route path="*" element={<NotFound />} />

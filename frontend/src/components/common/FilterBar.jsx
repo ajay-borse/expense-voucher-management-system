@@ -22,6 +22,7 @@ const STATUS_OPTIONS = [
 export default function FilterBar({
   departmentOptions = [],
   categoryOptions = [],
+  fixedStatus = null,
   className = '',
 }) {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -29,7 +30,7 @@ export default function FilterBar({
 
   // Read current URL search parameters
   const currentSearch = searchParams.get('search') || '';
-  const currentStatus = searchParams.get('status') || '';
+  const currentStatus = fixedStatus || searchParams.get('status') || '';
   const currentDepartment = searchParams.get('department') || '';
   const currentCategory = searchParams.get('category') || '';
   const currentFromDate = searchParams.get('fromDate') || '';
@@ -48,6 +49,17 @@ export default function FilterBar({
   useEffect(() => {
     setSearchInput(currentSearch);
   }, [currentSearch]);
+
+  // Ensure fixed status is always maintained in the URL
+  useEffect(() => {
+    if (fixedStatus && searchParams.get('status') !== fixedStatus) {
+      setSearchParams((prev) => {
+        const p = new URLSearchParams(prev);
+        p.set('status', fixedStatus);
+        return p;
+      }, { replace: true });
+    }
+  }, [fixedStatus, searchParams, setSearchParams]);
 
   // Helper to atomically update query params, preserving unrelated parameters
   const updateParams = useCallback(
@@ -107,6 +119,7 @@ export default function FilterBar({
 
   // Immediate filter handlers (status, department, category, sorting)
   const handleFilterChange = (key, val) => {
+    if (key === 'status' && fixedStatus) return;
     updateParams({ [key]: val });
   };
 
@@ -125,7 +138,7 @@ export default function FilterBar({
     }
   };
 
-  // Reset all filters to default state
+  // Reset all filters to default state (preserves fixedStatus if set)
   const handleReset = () => {
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
@@ -137,7 +150,11 @@ export default function FilterBar({
       const newParams = new URLSearchParams(prev);
       // Remove all voucher filter keys
       newParams.delete('search');
-      newParams.delete('status');
+      if (fixedStatus) {
+        newParams.set('status', fixedStatus);
+      } else {
+        newParams.delete('status');
+      }
       newParams.delete('department');
       newParams.delete('category');
       newParams.delete('fromDate');
@@ -187,20 +204,35 @@ export default function FilterBar({
           />
         </div>
 
-        {/* Status Dropdown */}
+        {/* Status Dropdown / Fixed Indicator */}
         <div className="w-full sm:w-48">
-          <select
-            value={currentStatus}
-            onChange={(e) => handleFilterChange('status', e.target.value)}
-            className="block w-full py-2 px-3 text-sm rounded-lg border border-slate-300 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-            aria-label="Filter by voucher status"
-          >
-            {STATUS_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+          {fixedStatus ? (
+            <div
+              className="flex items-center justify-between py-2 px-3 text-xs font-semibold rounded-lg border border-amber-300 bg-amber-50 text-amber-900 shadow-2xs select-none"
+              title="Status filter is fixed to Pending Approval for this view"
+            >
+              <span className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                <span>Pending Approval</span>
+              </span>
+              <span className="text-[10px] uppercase font-bold tracking-wider text-amber-700 bg-amber-200/60 px-1.5 py-0.5 rounded">
+                Locked
+              </span>
+            </div>
+          ) : (
+            <select
+              value={currentStatus}
+              onChange={(e) => handleFilterChange('status', e.target.value)}
+              className="block w-full py-2 px-3 text-sm rounded-lg border border-slate-300 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+              aria-label="Filter by voucher status"
+            >
+              {STATUS_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
 
         {/* Toggle Advanced Filters Button */}

@@ -24,6 +24,7 @@ import VoucherDetails from './pages/employee/VoucherDetails';
 import DirectorDashboard from './pages/director/DirectorDashboard';
 import PendingApprovals from './pages/director/PendingApprovals';
 import AllVouchers from './pages/director/AllVouchers';
+import DirectorVoucherDetails from './pages/director/DirectorVoucherDetails';
 
 // Accounts Views
 import AccountsDashboard from './pages/accounts/AccountsDashboard';
@@ -144,6 +145,7 @@ function App() {
                 <Route index element={<Navigate to="/director/dashboard" replace />} />
                 <Route path="dashboard" element={<DirectorDashboard />} />
                 <Route path="vouchers/pending" element={<PendingApprovals />} />
+                <Route path="vouchers/:id" element={<DirectorVoucherDetails />} />
                 <Route path="vouchers" element={<AllVouchers />} />
               </Route>
 

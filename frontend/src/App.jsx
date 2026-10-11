@@ -11,6 +11,7 @@ import LoadingSpinner from './components/common/LoadingSpinner';
 // Pages
 import Login from './pages/Login';
 import NotFound from './pages/NotFound';
+import { ToastProvider } from './context/ToastContext';
 
 // Employee Views
 import EmployeeDashboard from './pages/employee/EmployeeDashboard';
@@ -95,68 +96,70 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <Routes>
-          {/* Public Root & Login Routes */}
-          <Route path="/" element={<RootRedirect />} />
-          <Route
-            path="/login"
-            element={
-              <PublicOnlyRoute>
-                <Login />
-              </PublicOnlyRoute>
-            }
-          />
-
-          {/* Authenticated Application Shell */}
-          <Route
-            element={
-              <ProtectedRoute>
-                <AppLayout />
-              </ProtectedRoute>
-            }
-          >
-            {/* -------------------------------------------------------- */}
-            {/* EMPLOYEE ROUTES */}
-            {/* -------------------------------------------------------- */}
+        <ToastProvider>
+          <Routes>
+            {/* Public Root & Login Routes */}
+            <Route path="/" element={<RootRedirect />} />
             <Route
-              path="/employee"
-              element={<RoleRoute allowedRoles={['EMPLOYEE']} />}
+              path="/login"
+              element={
+                <PublicOnlyRoute>
+                  <Login />
+                </PublicOnlyRoute>
+              }
+            />
+
+            {/* Authenticated Application Shell */}
+            <Route
+              element={
+                <ProtectedRoute>
+                  <AppLayout />
+                </ProtectedRoute>
+              }
             >
-              <Route index element={<Navigate to="/employee/dashboard" replace />} />
-              <Route path="dashboard" element={<EmployeeDashboard />} />
-              <Route path="vouchers/create" element={<CreateVoucher />} />
-              <Route path="vouchers" element={<MyVouchers />} />
+              {/* -------------------------------------------------------- */}
+              {/* EMPLOYEE ROUTES */}
+              {/* -------------------------------------------------------- */}
+              <Route
+                path="/employee"
+                element={<RoleRoute allowedRoles={['EMPLOYEE']} />}
+              >
+                <Route index element={<Navigate to="/employee/dashboard" replace />} />
+                <Route path="dashboard" element={<EmployeeDashboard />} />
+                <Route path="vouchers/create" element={<CreateVoucher />} />
+                <Route path="vouchers" element={<MyVouchers />} />
+              </Route>
+
+              {/* -------------------------------------------------------- */}
+              {/* DIRECTOR ROUTES */}
+              {/* -------------------------------------------------------- */}
+              <Route
+                path="/director"
+                element={<RoleRoute allowedRoles={['DIRECTOR']} />}
+              >
+                <Route index element={<Navigate to="/director/dashboard" replace />} />
+                <Route path="dashboard" element={<DirectorDashboard />} />
+                <Route path="vouchers/pending" element={<PendingApprovals />} />
+                <Route path="vouchers" element={<AllVouchers />} />
+              </Route>
+
+              {/* -------------------------------------------------------- */}
+              {/* ACCOUNTS ROUTES */}
+              {/* -------------------------------------------------------- */}
+              <Route
+                path="/accounts"
+                element={<RoleRoute allowedRoles={['ACCOUNTS']} />}
+              >
+                <Route index element={<Navigate to="/accounts/dashboard" replace />} />
+                <Route path="dashboard" element={<AccountsDashboard />} />
+                <Route path="vouchers" element={<AccountsVouchers />} />
+              </Route>
             </Route>
 
-            {/* -------------------------------------------------------- */}
-            {/* DIRECTOR ROUTES */}
-            {/* -------------------------------------------------------- */}
-            <Route
-              path="/director"
-              element={<RoleRoute allowedRoles={['DIRECTOR']} />}
-            >
-              <Route index element={<Navigate to="/director/dashboard" replace />} />
-              <Route path="dashboard" element={<DirectorDashboard />} />
-              <Route path="vouchers/pending" element={<PendingApprovals />} />
-              <Route path="vouchers" element={<AllVouchers />} />
-            </Route>
-
-            {/* -------------------------------------------------------- */}
-            {/* ACCOUNTS ROUTES */}
-            {/* -------------------------------------------------------- */}
-            <Route
-              path="/accounts"
-              element={<RoleRoute allowedRoles={['ACCOUNTS']} />}
-            >
-              <Route index element={<Navigate to="/accounts/dashboard" replace />} />
-              <Route path="dashboard" element={<AccountsDashboard />} />
-              <Route path="vouchers" element={<AccountsVouchers />} />
-            </Route>
-          </Route>
-
-          {/* Catch-all 404 Route */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+            {/* Catch-all 404 Route */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </ToastProvider>
       </AuthProvider>
     </Router>
   );

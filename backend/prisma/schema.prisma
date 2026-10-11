@@ -67,7 +67,7 @@ model Voucher {
   amount               Decimal       @db.Decimal(12, 2)
   status               VoucherStatus @default(DRAFT)
   createdById          String
-  employeeSignatureUrl String
+  employeeSignatureUrl String?
   directorSignatureUrl String?
   approvedById         String?
   submittedAt          DateTime?

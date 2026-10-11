@@ -11,10 +11,12 @@ function createPrismaClient() {
     connectionString: process.env.DATABASE_URL,
   });
   const adapter = new PrismaPg(pool);
-  return new PrismaClient({
+  const client = new PrismaClient({
     adapter,
     log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
   });
+  client.$pgPool = pool;
+  return client;
 }
 
 const prisma = globalForPrisma.prisma || createPrismaClient();

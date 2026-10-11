@@ -1,0 +1,91 @@
+> expense-voucher-backend@1.0.0 test
+> jest --runInBand
+
+POST /api/auth/login 200 103.145 ms - 574
+POST /api/auth/login 200 61.570 ms - 579
+POST /api/auth/login 200 60.986 ms - 585
+POST /api/auth/login 200 60.495 ms - 545
+POST /api/auth/login 200 61.016 ms - 574
+GET /api/auth/me 200 4.499 ms - 243
+POST /api/auth/login 401 60.751 ms - 55
+POST /api/auth/login 400 0.994 ms - 223
+POST /api/auth/login 400 0.502 ms - 142
+POST /api/vouchers 201 33.814 ms - 868
+GET /api/vouchers/39afada8-8a11-4b92-b061-33a99ca6ecc8 404 165.469 ms - 424
+GET /api/vouchers/39afada8-8a11-4b92-b061-33a99ca6ecc8 200 11.424 ms - 1310
+POST /api/vouchers 201 10.590 ms - 812
+PUT /api/vouchers/1a84b74f-7fcf-413e-a6e2-bbe08f8acd6e 200 12.272 ms - 786
+POST /api/vouchers 201 9.970 ms - 812
+DELETE /api/vouchers/d65c984d-63d6-4813-9e67-c91469b12b7a 200 7.438 ms - 57
+POST /api/vouchers 201 12.306 ms - 828
+POST /api/vouchers/3e299251-ea12-4710-80b5-65d5d0d9a8fd/submit 200 13.770 ms - 871
+PUT /api/vouchers/3e299251-ea12-4710-80b5-65d5d0d9a8fd 409 22.993 ms - 751
+DELETE /api/vouchers/3e299251-ea12-4710-80b5-65d5d0d9a8fd 409 4.591 ms - 748
+PUT /api/vouchers/b9cac251-53d3-4769-a8e0-15cb415279ff 409 4.958 ms - 751
+DELETE /api/vouchers/b9cac251-53d3-4769-a8e0-15cb415279ff 409 4.211 ms - 748
+PUT /api/vouchers/8403fec2-630a-4147-8999-eb543b0feef4 409 3.849 ms - 751
+DELETE /api/vouchers/8403fec2-630a-4147-8999-eb543b0feef4 409 3.651 ms - 748
+POST /api/vouchers 201 9.343 ms - 831
+PUT /api/vouchers/11eda4f6-f86b-42bc-ae28-0f1ee7d25475 404 3.204 ms - 715
+DELETE /api/vouchers/11eda4f6-f86b-42bc-ae28-0f1ee7d25475 404 4.539 ms - 714
+POST /api/auth/login 200 60.709 ms - 569
+POST /api/vouchers 201 9.773 ms - 848
+POST /api/vouchers/127f50bb-8879-42ec-95d6-79babade0a27/submit 400 4.207 ms - 777
+POST /api/vouchers 201 9.921 ms - 840
+POST /api/vouchers/a357c0fd-7558-4ff8-9d70-7a69c90794c3/submit 200 5.986 ms - 883
+POST /api/vouchers/a357c0fd-7558-4ff8-9d70-7a69c90794c3/approve 400 2.272 ms - 56
+POST /api/vouchers 201 8.108 ms - 838
+POST /api/vouchers/ca117e9f-138e-4586-8ff6-2d2ed34da11c/submit 200 7.156 ms - 881
+POST /api/vouchers/ca117e9f-138e-4586-8ff6-2d2ed34da11c/reject 400 1.892 ms - 149
+POST /api/vouchers/ca117e9f-138e-4586-8ff6-2d2ed34da11c/reject 400 1.686 ms - 145
+POST /api/vouchers/ca117e9f-138e-4586-8ff6-2d2ed34da11c/reject 400 1.468 ms - 145
+POST /api/vouchers/ca117e9f-138e-4586-8ff6-2d2ed34da11c/reject 400 1.313 ms - 145
+POST /api/vouchers 403 1.710 ms - 91
+PUT /api/vouchers/b48087b7-64ed-4203-8543-8549656c0252 403 1.549 ms - 91
+DELETE /api/vouchers/b48087b7-64ed-4203-8543-8549656c0252 403 1.814 ms - 91
+POST /api/vouchers/b48087b7-64ed-4203-8543-8549656c0252/approve 403 1.873 ms - 91
+POST /api/vouchers/b48087b7-64ed-4203-8543-8549656c0252/reject 403 1.506 ms - 91
+POST /api/vouchers 201 9.721 ms - 824
+PUT /api/vouchers/6b9d01e5-adf9-4586-9e1d-21e713218362 403 1.853 ms - 91
+POST /api/vouchers 201 10.012 ms - 824
+POST /api/vouchers/a5a2b768-2bf3-4cca-a8c4-ef3d08f92887/approve 409 15.268 ms - 766
+POST /api/vouchers/b9cac251-53d3-4769-a8e0-15cb415279ff/approve 409 8.899 ms - 766
+POST /api/vouchers/8d62619a-9981-4f14-aa89-e8e4a054383f/approve 409 9.483 ms - 766
+POST /api/vouchers 400 2.033 ms - 122
+POST /api/vouchers 400 1.556 ms - 122
+POST /api/vouchers 400 1.680 ms - 137
+PASS tests/integration.test.js
+  Backend Integration Test Suite (Jest + Supertest)
+    Test 1 — Login success and failure
+      √ should return HTTP 200 and a usable authentication token for valid credentials (77 ms)
+      √ should return HTTP 401 for invalid credentials (64 ms)
+      √ should return HTTP 400 for missing credentials (9 ms)
+    Test 2 — Employee ownership
+      √ should prevent Employee A from retrieving Employee B's voucher and return HTTP 404 to conceal ownership (222 ms)
+    Test 3 — Draft-only editing and deletion
+      √ should allow an employee to edit their own DRAFT voucher (31 ms)
+      √ should allow an employee to delete their own DRAFT voucher (26 ms)
+      √ should reject editing or deleting vouchers in PENDING_APPROVAL, APPROVED, or REJECTED status (100 ms)
+      √ should reject editing or deleting another employee's voucher with HTTP 404 (28 ms)
+    Test 4 — Submit without an employee signature
+      √ should fail submission if employee has no saved signature and keep voucher in DRAFT (156 ms)
+    Test 5 — Approve without a director signature
+      √ should reject approval when director signature file is missing and keep voucher in PENDING_APPROVAL (28 ms)
+    Test 6 — Reject without a reason
+      √ should reject when rejectionReason is missing, empty, or whitespace-only, leaving voucher in PENDING_APPROVAL (40 ms)
+    Test 7 — ACCOUNTS permissions
+      √ should forbid ACCOUNTS from creating, editing, deleting, approving, or rejecting vouchers (27 ms)
+    Test 8 — DIRECTOR cannot edit employee voucher fields
+      √ should reject DIRECTOR attempts to use employee-only edit endpoints and prevent data mutation (19 ms)
+    Test 9 — Cannot approve a non-pending voucher
+      √ should return HTTP 409 Conflict when attempting to approve a DRAFT voucher with valid signature (34 ms)
+      √ should return HTTP 409 Conflict when attempting to approve an already APPROVED voucher (15 ms)
+      √ should return HTTP 409 Conflict when attempting to approve an already REJECTED voucher (16 ms)
+    Test 10 — Invalid amount
+      √ should reject amount zero and negative amounts with HTTP 400 and create no DB records (18 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       17 passed, 17 total
+Snapshots:   0 total
+Time:        2.143 s, estimated 4 s
+Ran all test suites.

@@ -29,6 +29,7 @@ import DirectorVoucherDetails from './pages/director/DirectorVoucherDetails';
 // Accounts Views
 import AccountsDashboard from './pages/accounts/AccountsDashboard';
 import AccountsVouchers from './pages/accounts/AccountsVouchers';
+import AccountsVoucherDetails from './pages/accounts/AccountsVoucherDetails';
 
 /**
  * Root redirect handler: Dispatches authenticated users to their
@@ -158,6 +159,7 @@ function App() {
               >
                 <Route index element={<Navigate to="/accounts/dashboard" replace />} />
                 <Route path="dashboard" element={<AccountsDashboard />} />
+                <Route path="vouchers/:id" element={<AccountsVoucherDetails />} />
                 <Route path="vouchers" element={<AccountsVouchers />} />
               </Route>
             </Route>

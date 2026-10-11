@@ -116,7 +116,7 @@ export default function AppLayout() {
         {/* DESKTOP SIDEBAR */}
         {/* ============================================================ */}
         <aside
-          className={`hidden md:flex flex-col bg-white border-r border-slate-200 transition-all duration-200 ease-in-out select-none z-20 ${
+          className={`hidden md:flex flex-col bg-white border-r border-slate-200 transition-all duration-200 ease-in-out select-none z-20 print:hidden ${
             isSidebarCollapsed ? 'w-20' : 'w-64'
           }`}
         >
@@ -294,9 +294,9 @@ export default function AppLayout() {
         {/* ============================================================ */}
         {/* MAIN CONTENT WRAPPER */}
         {/* ============================================================ */}
-        <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+        <div className="flex-1 flex flex-col min-w-0 overflow-y-auto print:overflow-visible">
           {/* Top Bar */}
-          <header className="h-16 bg-white border-b border-slate-200 px-4 sm:px-6 lg:px-8 flex items-center justify-between sticky top-0 z-10 shadow-2xs">
+          <header className="h-16 bg-white border-b border-slate-200 px-4 sm:px-6 lg:px-8 flex items-center justify-between sticky top-0 z-10 shadow-2xs print:hidden">
             <div className="flex items-center gap-3 min-w-0">
               <button
                 type="button"
@@ -339,7 +339,7 @@ export default function AppLayout() {
           </header>
 
           {/* Page Body */}
-          <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+          <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto print:p-0 print:m-0 print:max-w-none">
             <Outlet />
           </main>
         </div>

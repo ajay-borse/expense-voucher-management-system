@@ -35,6 +35,7 @@ import ConfirmModal from '../../components/common/ConfirmModal';
 import Modal from '../../components/common/Modal';
 import SecureImage from '../../components/common/SecureImage';
 import SignatureUpload from '../../components/common/SignatureUpload';
+import VoucherPrintDocument from '../../components/voucher/VoucherPrintDocument';
 
 export default function VoucherDetails() {
   const { id } = useParams();
@@ -178,7 +179,9 @@ export default function VoucherDetails() {
   const isPending = voucher.status === 'PENDING_APPROVAL';
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto pb-12">
+    <>
+      <VoucherPrintDocument voucher={voucher} />
+      <div className="space-y-6 max-w-5xl mx-auto pb-12 print:hidden">
       {/* Top Navigation & Breadcrumbs */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 print:hidden">
         <PageHeader
@@ -735,5 +738,6 @@ export default function VoucherDetails() {
         </div>
       </Modal>
     </div>
+    </>
   );
 }

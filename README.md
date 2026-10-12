@@ -1,18 +1,51 @@
 # Expense Voucher Management System
 
-A full-stack, enterprise-grade, role-based web application for creating, managing, approving, auditing, and printing employee expense vouchers with cryptographic signature verification and complete activity audit logging.
+A role-based web application for creating, approving and tracking employee expense vouchers, with signature uploads and an audit trail.
 
 [![Node.js](https://img.shields.io/badge/Node.js-v18%2B%20%7C%20v24-339933?logo=node.js)](https://nodejs.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-v14%2B-4169E1?logo=postgresql)](https://www.postgresql.org/)
 [![Prisma ORM](https://img.shields.io/badge/Prisma-v7.10.0-2D3748?logo=prisma)](https://www.prisma.io/)
 [![React](https://img.shields.io/badge/React-v18.3.1-61DAFB?logo=react)](https://react.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-v3.4.17-06B6D4?logo=tailwindcss)](https://tailwindcss.com/)
-[![Jest Tests](https://img.shields.io/badge/Tests-17%20Passing-brightgreen?logo=jest)](https://jestjs.io/)
+[![Jest Tests](https://img.shields.io/badge/Tests-62%20Passing-brightgreen?logo=jest)](https://jestjs.io/)
+
+---
+
+## Quick Start
+
+1. **Clone the repository**:
+   ```powershell
+   git clone https://github.com/ajay-borse/expense-voucher-management-system.git
+   cd expense-voucher-management-system
+   ```
+2. **Create the database**:
+   Create PostgreSQL database `expense_voucher_db`.
+3. **Backend setup**:
+   ```powershell
+   cd backend
+   npm install
+   copy .env.example .env
+   # Set DATABASE_URL in .env
+   npx prisma migrate deploy
+   npx prisma generate
+   npm run seed
+   npm run dev
+   ```
+4. **Frontend setup**:
+   ```powershell
+   cd ../frontend
+   npm install
+   copy .env.example .env
+   npm run dev
+   ```
+5. **Open and log in**:
+   Open http://localhost:5173 and log in with `employee@demo.com` / `director@demo.com` / `accounts@demo.com`, password `Password@123`.
 
 ---
 
 ## Table of Contents
 
+- [Quick Start](#quick-start)
 - [A. Project Overview](#a-project-overview)
 - [B. Features by Role](#b-features-by-role)
 - [C. Tech Stack](#c-tech-stack)
@@ -73,7 +106,7 @@ Built on a decoupled client-server architecture:
 ### 3. Accounts
 - **Financial Audit Dashboard**: High-level financial overview showcasing global voucher counts (`Total`, `Pending`, `Approved`, `Rejected`), total disbursed approved capital in ₹, and a list of the 5 most recently approved claims.
 - **Read-Only Voucher Register**: Centralized master ledger of all vouchers across all departments. Accounts cannot create, edit, delete, approve, or reject vouchers.
-- **Advanced Filtering & Search**: Real-time debounced keyword search (by voucher number, title, description), status filters, department filters, category filters, date ranges, and min/max amount boundaries synchronized to URL query parameters.
+- **Advanced Filtering & Search**: Real-time debounced keyword search (by voucher number, employee name, title, description), status filters, department filters, category filters, date ranges, and min/max amount boundaries synchronized to URL query parameters.
 - **Sorting & Pagination**: Sort by creation date, expense date, amount, or voucher number in ascending/descending order with customizable page sizes (10, 20, 50).
 - **CSV Data Export**: Instant client-side CSV export of filtered records with standardized headers and monetary formatting.
 - **A4 Print & PDF View**: Dedicated, styled A4 print layout complying with corporate voucher stationery standards (`@page { size: A4 portrait; margin: 12mm; }`), hiding UI shell controls and preserving signature line fidelity.
@@ -166,7 +199,8 @@ expense-voucher-management-system/
 │   │   │   └── voucher.validator.js    # Voucher CRUD & search query schemas
 │   │   └── app.js                      # Express configuration & middleware pipeline
 │   ├── tests/
-│   │   ├── integration.test.js         # 17 automated integration tests with Supertest
+│   │   ├── integration.test.js         # 17 integration tests: core workflow and business rules
+│   │   ├── security_compliance.test.js # 45 security and negative-case tests
 │   │   └── setupEnv.js                 # Test environment loader & database safety check
 │   ├── uploads/
 │   │   └── signatures/                 # Stored signature images (runtime-generated)
@@ -310,14 +344,16 @@ Open `backend/.env` in your text editor and configure your settings:
 
 ```dotenv
 PORT=5000
-DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5234/expense_voucher_db"
+DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/expense_voucher_db"
 JWT_SECRET="replace_with_a_long_random_secret_at_least_32_characters"
 JWT_EXPIRES_IN=1d
 CLIENT_URL=http://localhost:5173
 ```
 
+The default PostgreSQL port is 5432. Change it in DATABASE_URL if your server uses a different port.
+
 > **Generating a Secure JWT Secret:**
-> Generate a cryptographically secure 64-character secret using Node.js:
+> Generate a secure 64-character secret using Node.js:
 > ```powershell
 > node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 > ```
@@ -335,7 +371,7 @@ Configure `backend/.env.test`:
 ```dotenv
 NODE_ENV=test
 PORT=5001
-DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5234/expense_voucher_test_db"
+DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/expense_voucher_test_db"
 JWT_SECRET="test_suite_jwt_secret_do_not_use_in_production"
 JWT_EXPIRES_IN=1d
 CLIENT_URL=http://localhost:5173
@@ -444,7 +480,7 @@ The database seed script (`backend/prisma/seed.js`) provides 4 demo accounts pre
 
 ## J. Database Schema Explanation
 
-The schema is defined in [backend/prisma/schema.prisma](file:///c:/Users/DELL/expense-voucher-management-system/backend/prisma/schema.prisma).
+The schema is defined in [backend/prisma/schema.prisma](backend/prisma/schema.prisma).
 
 ### 1. `users` Table
 Stores user accounts for employees, directors, and accounts staff.
@@ -642,7 +678,7 @@ All API endpoints are prefixed with `/api` and return standardized JSON response
         "role": "EMPLOYEE",
         "employeeId": "EMP-001",
         "department": "Engineering",
-        "signatureUrl": "/api/users/signature/file/sig-demo-emp.png"
+        "signatureUrl": "/api/users/signature/file/employee-demo.png"
       }
     }
   }
@@ -761,6 +797,11 @@ All API endpoints are prefixed with `/api` and return standardized JSON response
 3. **Local Filesystem Signature Storage**: Signatures are stored securely on the local filesystem under `backend/uploads/signatures/` with randomized UUID filenames (`sig-<uuid>.<ext>`) and served via an authenticated streaming endpoint rather than exposed through public static folders.
 4. **Currency Handling**: Amounts are maintained in Indian Rupees (₹ INR) using PostgreSQL `DECIMAL(12, 2)` to eliminate floating-point rounding errors.
 5. **Atomic Audit Trail**: Activity log records (`VoucherActivity`) are written inside the exact same Prisma database transaction (`$transaction`) as the voucher mutation, guaranteeing that a voucher status never diverges from its audit log.
+6. **Merged Status**: "Submitted" and "Pending Approval" are merged into one status, `PENDING_APPROVAL`.
+7. **Employee ID**: Employee ID is optional.
+8. **Voucher Date**: `voucherDate` is set automatically to the creation date.
+9. **Decision Date**: `approvalDate` also stores the decision date when a voucher is rejected.
+10. **Profile Signature**: Each user has one saved profile signature; the employee's is copied onto the voucher at submission.
 
 ---
 
@@ -773,13 +814,13 @@ The backend includes a comprehensive automated integration test suite written wi
 #### 1. Configure the Test Database
 Ensure `backend/.env.test` exists and points to `expense_voucher_test_db`:
 ```dotenv
-DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5234/expense_voucher_test_db"
+DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/expense_voucher_test_db"
 ```
 
 Apply migrations to the test database:
 ```powershell
 cd backend
-$env:DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5234/expense_voucher_test_db"
+$env:DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/expense_voucher_test_db"
 npx prisma migrate deploy
 ```
 
@@ -790,42 +831,12 @@ Execute the test command from `backend/`:
 npm test
 ```
 
-Expected output (17/17 Passing):
-```text
-PASS tests/integration.test.js
-  Backend Integration Test Suite (Jest + Supertest)
-    Test 1 — Login success and failure
-      √ should return HTTP 200 and a usable authentication token for valid credentials
-      √ should return HTTP 401 for invalid credentials
-      √ should return HTTP 400 for missing credentials
-    Test 2 — Employee ownership
-      √ should prevent Employee A from retrieving Employee B's voucher and return HTTP 404 to conceal ownership
-    Test 3 — Draft-only editing and deletion
-      √ should allow an employee to edit their own DRAFT voucher
-      √ should allow an employee to delete their own DRAFT voucher
-      √ should reject editing or deleting vouchers in PENDING_APPROVAL, APPROVED, or REJECTED status
-      √ should reject editing or deleting another employee's voucher with HTTP 404
-    Test 4 — Submit without an employee signature
-      √ should fail submission if employee has no saved signature and keep voucher in DRAFT
-    Test 5 — Approve without a director signature
-      √ should reject approval when director signature file is missing and keep voucher in PENDING_APPROVAL
-    Test 6 — Reject without a reason
-      √ should reject when rejectionReason is missing, empty, or whitespace-only, leaving voucher in PENDING_APPROVAL
-    Test 7 — ACCOUNTS permissions
-      √ should forbid ACCOUNTS from creating, editing, deleting, approving, or rejecting vouchers
-    Test 8 — DIRECTOR cannot edit employee voucher fields
-      √ should reject DIRECTOR attempts to use employee-only edit endpoints and prevent data mutation
-    Test 9 — Cannot approve a non-pending voucher
-      √ should return HTTP 409 Conflict when attempting to approve a DRAFT voucher with valid signature
-      √ should return HTTP 409 Conflict when attempting to approve an already APPROVED voucher
-      √ should return HTTP 409 Conflict when attempting to approve an already REJECTED voucher
-    Test 10 — Invalid amount
-      √ should reject amount zero and negative amounts with HTTP 400 and create no DB records
+Test Suites: 2 passed, 2 total / Tests: 62 passed, 62 total
 
-Test Suites: 1 passed, 1 total
-Tests:       17 passed, 17 total
-Time:        ~4.2 s
-```
+| Test Suite | Tests | Coverage |
+| :--- | :--- | :--- |
+| `tests/integration.test.js` | 17 | Core workflow and business rules: authentication, employee isolation (404), draft-only edits & deletion (409), submission without employee signature (400), approval without director signature (400), rejection without reason (400), accounts read-only restrictions (403), director mutation restrictions, non-pending approval guards, and positive amount validation. |
+| `tests/security_compliance.test.js` | 45 | Security and negative-case testing: wrong-role 403s, terminal-state immutability, duplicate approve/reject, file upload security (magic bytes inspection, file size limits), SQL-injection-style search input, invalid/expired JWT, and payload validation. |
 
 ---
 
@@ -863,8 +874,8 @@ To add screenshots to your repository, save PNG images to the `docs/screenshots/
 ## R. Troubleshooting
 
 ### 1. PostgreSQL Connection Refused
-- **Symptom**: `PrismaClientInitializationError: Can't reach database server at localhost:5234`.
-- **Resolution**: Verify your PostgreSQL service is running. Check your PostgreSQL port in `postgresql.conf` (default is often `5432` or custom `5234`). Update `DATABASE_URL` in `backend/.env` accordingly.
+- **Symptom**: `PrismaClientInitializationError: Can't reach database server at localhost:5432`.
+- **Resolution**: Verify your PostgreSQL service is running. Check your PostgreSQL port in `postgresql.conf` (default is `5432`). Update `DATABASE_URL` in `backend/.env` accordingly.
 
 ### 2. Port Already in Use (EADDRINUSE)
 - **Symptom**: `Error: listen EADDRINUSE: address already in use :::5000`.
@@ -885,4 +896,4 @@ To add screenshots to your repository, save PNG images to the `docs/screenshots/
 
 ## License
 
-ISC License. Developed for academic and demonstration purposes.
+ISC License. Developed as an internship assignment submission.
